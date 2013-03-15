@@ -1,14 +1,9 @@
-Deterministic Parallel Java (DPJ)
-=================================
+DPJ-UR
+======
 
-This directory and its subdirectories contain source code for the
-Deterministic Parallel Java system, which implements an extended
-version of Java that adds features for deterministic parallel
-programming.
+This is the public repository for the DPJ-UR (DPJ with Unique Regions) research project.  
 
-DPJ is open source software. You may freely distribute it under the 
-terms of the license agreement found in LICENSE.TXT.
+Papers describing this project are in preparation.
 
-Please see the documentation provided in the Documentation directory 
-for further assistance with DPJ.  The DPJ Installation Manual
-provides instructions about how to install DPJ on your system.
+The license is the same as for DPJ (github.com/DPJ/dpj).
+
