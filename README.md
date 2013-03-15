@@ -1,7 +1,7 @@
 DPJ-UR
 ======
 
-This is the public repositor for the DPJ-UR (DPJ with Unique Regions) research project.  
+This is the public repository for the DPJ-UR (DPJ with Unique Regions) research project.  
 
 Papers describing this project are in preparation.
 
