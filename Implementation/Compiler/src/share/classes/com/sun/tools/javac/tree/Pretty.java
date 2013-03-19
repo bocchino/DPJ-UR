@@ -2204,7 +2204,7 @@ public class Pretty extends JCTree.Visitor {
 		print("atomic ");
 	    print(tree.name);
 	    if (tree.bound != null) {
-		print(" under ");
+		print(" in ");
 		printExpr(tree.bound);
 	    }
 	} catch (IOException e) {

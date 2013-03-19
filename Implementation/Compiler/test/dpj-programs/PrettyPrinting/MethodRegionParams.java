@@ -16,7 +16,7 @@ class C {
     /**
      * Method region parameter under RPL
      */        
-    <region P under r> void m2() {}
+    <region P in r:*> void m2() {}
 
     /**
      * Two method region parameters declared disjoint

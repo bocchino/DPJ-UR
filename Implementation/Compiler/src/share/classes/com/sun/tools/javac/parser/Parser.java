@@ -28,6 +28,7 @@ package com.sun.tools.javac.parser;
 import static com.sun.tools.javac.parser.Token.AMP;
 import static com.sun.tools.javac.parser.Token.ARRAYCLASS;
 import static com.sun.tools.javac.parser.Token.ASSERT;
+import static com.sun.tools.javac.parser.Token.BANG;
 import static com.sun.tools.javac.parser.Token.BAR;
 import static com.sun.tools.javac.parser.Token.CASE;
 import static com.sun.tools.javac.parser.Token.CATCH;
@@ -61,7 +62,6 @@ import static com.sun.tools.javac.parser.Token.LBRACKET;
 import static com.sun.tools.javac.parser.Token.LONGLITERAL;
 import static com.sun.tools.javac.parser.Token.LPAREN;
 import static com.sun.tools.javac.parser.Token.LT;
-import static com.sun.tools.javac.parser.Token.LTLT;
 import static com.sun.tools.javac.parser.Token.MONKEYS_AT;
 import static com.sun.tools.javac.parser.Token.NEW;
 import static com.sun.tools.javac.parser.Token.NUMBER;
@@ -83,7 +83,6 @@ import static com.sun.tools.javac.parser.Token.SUBSUB;
 import static com.sun.tools.javac.parser.Token.SUPER;
 import static com.sun.tools.javac.parser.Token.THROWS;
 import static com.sun.tools.javac.parser.Token.TRUE;
-import static com.sun.tools.javac.parser.Token.UNDER;
 import static com.sun.tools.javac.parser.Token.VOID;
 import static com.sun.tools.javac.parser.Token.WHILE;
 import static com.sun.tools.javac.parser.Token.WRITES;
@@ -3562,25 +3561,36 @@ public class Parser {
 	return params.toList();
     }
     
-    /** RegionParameter = [ REGION ] [ ATOMIC] RegionVariable [RegionParameterBound]
-     *  RegionParameterBound = UNDER RegionPathList
+    /** RegionParameter = [REGION] [ATOMIC] ["!" | "shared"] RegionVariable [RegionParameterBound]
+     *  RegionParameterBound = 'in' RegionPathList
      *  RegionVariable = Ident
      */
     DPJRegionParameter regionParameter() {
 	if (S.token() == REGION) S.nextToken();
 	boolean isAtomic = false;
+	DPJRegionParameter.Uniqueness uniqueness =
+		DPJRegionParameter.Uniqueness.NONE;
 	if (tokenIsIdent("atomic")) {
 	    S.nextToken();
 	    isAtomic = true;
 	}
+	if (S.token() == BANG) {
+	    S.nextToken();
+	    uniqueness = DPJRegionParameter.Uniqueness.UNIQUE;
+	}
+	else if (tokenIsIdent("shared")) {
+	    S.nextToken();
+	    uniqueness = DPJRegionParameter.Uniqueness.SHARED;	    
+	}
 	int pos = S.pos();
         Name name = ident();
         JCTree.DPJRegionPathList bound = null;
-        if (S.token() == UNDER) {
+        if (tokenIsIdent("in")) {
             S.nextToken();
             bound = rpl();
         }
-        return toP(F.at(pos).RegionParameter(name, bound, isAtomic));
+        return toP(F.at(pos).RegionParameter(name, isAtomic,
+        	uniqueness, bound));
     }
     
     /** EffectParam := [ "effect" ] Ident

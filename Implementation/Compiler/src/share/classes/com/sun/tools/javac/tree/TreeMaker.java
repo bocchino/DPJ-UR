@@ -457,9 +457,10 @@ public class TreeMaker implements JCTree.Factory {
         return tree;
     }
     
-    public DPJRegionParameter RegionParameter(Name name, DPJRegionPathList bound,
-	    boolean isAtomic) {
-	DPJRegionParameter tree = new DPJRegionParameter(name, bound, isAtomic);
+    public DPJRegionParameter RegionParameter(Name name, boolean isAtomic,
+	    DPJRegionParameter.Uniqueness uniqueness, DPJRegionPathList bound) {
+	DPJRegionParameter tree = new DPJRegionParameter(name, isAtomic, 
+		uniqueness, bound);
 	tree.pos = pos;
 	return tree;
     }

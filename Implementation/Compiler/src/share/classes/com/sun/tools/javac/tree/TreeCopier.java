@@ -606,7 +606,8 @@ public class TreeCopier<P> implements TreeVisitor<JCTree,P> {
     public JCTree visitRegionParameter(RegionParameterTree node, P p) {
 	DPJRegionParameter t = (DPJRegionParameter) node;
 	DPJRegionPathList bound = copy(t.bound, p);
-	DPJRegionParameter result = M.at(t.pos).RegionParameter(t.name, bound, t.isAtomic);
+	DPJRegionParameter result = M.at(t.pos).RegionParameter(t.name, 
+		t.isAtomic, t.uniqueness, bound);
 	result.sym = t.sym;
 	return result;
     }

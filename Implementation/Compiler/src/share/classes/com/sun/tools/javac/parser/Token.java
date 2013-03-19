@@ -159,7 +159,6 @@ public enum Token {
     READS("reads"),
     REGION("region"),
     SPAWN("spawn"),
-    UNDER("under"),
     WRITES("writes");
 
     

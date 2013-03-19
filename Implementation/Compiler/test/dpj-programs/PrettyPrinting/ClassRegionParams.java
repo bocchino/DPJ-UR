@@ -33,7 +33,7 @@ class C3<region P1, P2> {
  * Two class region parameters, one declared under an RPL and 
  * both declared disjoint
  */
-class C4<region P1, P2 under C4.r1 | P1 # P2> {
+class C4<region P1, P2 in C4.r1:* | P1 # P2> {
     region r1;
 }
 

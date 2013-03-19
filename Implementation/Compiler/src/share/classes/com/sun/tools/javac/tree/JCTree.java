@@ -2398,16 +2398,23 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
     }
     
     public static class DPJRegionParameter extends JCTree implements RegionParameterTree {
-        public Name name;
+
+	public enum Uniqueness {
+	    UNIQUE, SHARED, NONE;
+	}
+	
+	public Name name;
         // TODO: This is currently unused
         public DPJRegionPathList bound;
         public boolean isAtomic;
+        public final Uniqueness uniqueness;
 	public RegionParameterSymbol sym; // Set by the Enter class
 	
-        protected DPJRegionParameter(Name name, DPJRegionPathList bound,
-        	boolean isAtomic) {
+        protected DPJRegionParameter(Name name, boolean isAtomic,
+        	Uniqueness uniqueness, DPJRegionPathList bound) {
             this.name = name;
             this.bound = bound;
+            this.uniqueness = uniqueness;
             this.isAtomic = isAtomic;
         }
 	@Override
@@ -2889,8 +2896,8 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         	List<JCExpression> bounds);
         DPJForLoop DPJForLoop(JCVariableDecl var, JCExpression start, JCExpression length,
         	              JCExpression stride, JCStatement body, boolean isNonDet);
-        DPJRegionParameter RegionParameter(Name name, DPJRegionPathList bound,
-        	boolean isAtomic);
+        DPJRegionParameter RegionParameter(Name name, boolean isAtomic,
+        	DPJRegionParameter.Uniqueness uniqueness, DPJRegionPathList bound);
         DPJParamInfo ParamInfo(List<DPJRegionParameter> rplParams,
         		List<Pair<DPJRegionPathList,DPJRegionPathList>> rplConstraints,
         		List<JCIdent> effectParams,
