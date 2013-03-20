@@ -105,6 +105,7 @@ public interface TreeVisitor<R,P> {
     R visitUnary(UnaryTree node, P p);
     R visitVariable(VariableTree node, P p);
     R visitRegion(RegionTree node, P p); // DPJ
+    R visitUniqueRegion(UniqueRegionTree node, P p);
     R visitRPLElt(RPLEltTree node, P p); // DPJ
     R visitRPL(RPLTree node, P p); // DPJ
     R visitMethEffects(EffectTree node, P p); // DPJ

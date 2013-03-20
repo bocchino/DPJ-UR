@@ -516,6 +516,13 @@ public class TreeMaker implements JCTree.Factory {
         return tree;
     }
     
+    public DPJUniqueRegionDecl UniqueRegionDecl(DPJRegionParameter param, 
+	    	JCStatement copyPhase) {
+	DPJUniqueRegionDecl tree = new DPJUniqueRegionDecl(param, copyPhase);
+	tree.pos = pos;
+	return tree;
+    }
+    
     public DPJRegionPathListElt RegionPathListElt(JCExpression exp, int t) {
 	DPJRegionPathListElt tree = new DPJRegionPathListElt(exp, t);
 	tree.pos = pos;

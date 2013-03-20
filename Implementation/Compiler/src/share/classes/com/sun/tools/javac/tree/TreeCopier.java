@@ -73,7 +73,6 @@ import com.sun.source.tree.ParenthesizedTree;
 import com.sun.source.tree.PrimitiveTypeTree;
 import com.sun.source.tree.RPLEltTree;
 import com.sun.source.tree.RPLTree;
-import com.sun.source.tree.RegionParamTypeTree;
 import com.sun.source.tree.RegionParameterTree;
 import com.sun.source.tree.RegionTree;
 import com.sun.source.tree.ReturnTree;
@@ -86,6 +85,7 @@ import com.sun.source.tree.TryTree;
 import com.sun.source.tree.TypeCastTree;
 import com.sun.source.tree.TypeParameterTree;
 import com.sun.source.tree.UnaryTree;
+import com.sun.source.tree.UniqueRegionTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.tree.WhileLoopTree;
 import com.sun.source.tree.WildcardTree;
@@ -97,10 +97,12 @@ import com.sun.tools.javac.tree.JCTree.DPJFinish;
 import com.sun.tools.javac.tree.JCTree.DPJForLoop;
 import com.sun.tools.javac.tree.JCTree.DPJNonint;
 import com.sun.tools.javac.tree.JCTree.DPJParamInfo;
+import com.sun.tools.javac.tree.JCTree.DPJRegionDecl;
 import com.sun.tools.javac.tree.JCTree.DPJRegionParameter;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathList;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathListElt;
 import com.sun.tools.javac.tree.JCTree.DPJSpawn;
+import com.sun.tools.javac.tree.JCTree.DPJUniqueRegionDecl;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
@@ -136,7 +138,6 @@ import com.sun.tools.javac.tree.JCTree.JCNewArray;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCParens;
 import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
-import com.sun.tools.javac.tree.JCTree.DPJRegionDecl;
 import com.sun.tools.javac.tree.JCTree.JCReturn;
 import com.sun.tools.javac.tree.JCTree.JCSkip;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
@@ -580,6 +581,13 @@ public class TreeCopier<P> implements TreeVisitor<JCTree,P> {
         DPJRegionDecl result = M.at(t.pos).RegionDecl(mods, t.name, t.isAtomic);
         result.sym = t.sym;
         return result;
+    }
+    
+    public JCTree visitUniqueRegion(UniqueRegionTree node, P p) {
+	DPJUniqueRegionDecl t = (DPJUniqueRegionDecl) node;
+	DPJRegionParameter param = copy(t.param, p);
+	JCStatement copyPhase = copy(t.copyPhase, p);
+	return M.at(t.pos).UniqueRegionDecl(param, copyPhase);
     }
     
     public JCTree visitRPLElt(RPLEltTree node, P p) {

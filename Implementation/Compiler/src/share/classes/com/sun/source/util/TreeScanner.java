@@ -84,6 +84,7 @@ import com.sun.source.tree.TryTree;
 import com.sun.source.tree.TypeCastTree;
 import com.sun.source.tree.TypeParameterTree;
 import com.sun.source.tree.UnaryTree;
+import com.sun.source.tree.UniqueRegionTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.tree.WhileLoopTree;
 import com.sun.source.tree.WildcardTree;
@@ -442,6 +443,12 @@ public class TreeScanner<R,P> implements TreeVisitor<R,P> {
 
     public R visitRegion(RegionTree node, P p) { // DPJ
 	return scan(node.getModifiers(), p);
+    }
+    
+    public R visitUniqueRegion(UniqueRegionTree node, P p) {
+	R r = scan(node.getParameter(), p);
+	r = scanAndReduce(node.getCopyPhase(), p, r);
+	return r;
     }
     
     public R visitRPLElt(RPLEltTree node, P p) { // DPJ

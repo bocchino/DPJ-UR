@@ -79,7 +79,6 @@ import com.sun.source.tree.ParenthesizedTree;
 import com.sun.source.tree.PrimitiveTypeTree;
 import com.sun.source.tree.RPLEltTree;
 import com.sun.source.tree.RPLTree;
-import com.sun.source.tree.RegionParamTypeTree;
 import com.sun.source.tree.RegionParameterTree;
 import com.sun.source.tree.RegionTree;
 import com.sun.source.tree.ReturnTree;
@@ -94,6 +93,7 @@ import com.sun.source.tree.TryTree;
 import com.sun.source.tree.TypeCastTree;
 import com.sun.source.tree.TypeParameterTree;
 import com.sun.source.tree.UnaryTree;
+import com.sun.source.tree.UniqueRegionTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.tree.WhileLoopTree;
 import com.sun.source.tree.WildcardTree;
@@ -105,23 +105,22 @@ import com.sun.tools.javac.code.RPL;
 import com.sun.tools.javac.code.RPLElement;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.RegionNameSymbol;
 import com.sun.tools.javac.code.Symbol.RegionParameterSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.MethodType;
+import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.comp.Attr;
-import com.sun.tools.javac.parser.Parser;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Pair;
 import com.sun.tools.javac.util.Position;
-import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 /**
  * Root class for abstract syntax tree nodes. It provides definitions
@@ -408,9 +407,13 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
      */
     public static final int REGIONDEF = RPL + 1;
     
+    /** Region definitions, of type RegionDef. // DPJ
+     */
+    public static final int UNIQUE_REGIONDEF = REGIONDEF + 1;
+        
     /** Method effects // DPJ
      */
-    public static final int METHOD_EFFECTS = REGIONDEF + 1;
+    public static final int METHOD_EFFECTS = UNIQUE_REGIONDEF + 1;
     
     /** Formal region parameter, of type RegionParameter.
      */
@@ -910,14 +913,17 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
      * @param name variable name
      * @param sym symbol
      */
-    public static class DPJRegionDecl extends JCStatement implements RegionTree {
+    public static class DPJRegionDecl 
+	extends JCStatement 
+	implements RegionTree 
+    {
         public final JCModifiers mods;
         public final Name name;
         public RegionNameSymbol sym;
         public final boolean isAtomic;
         protected DPJRegionDecl(JCModifiers mods,
-			 Name name,
-			 boolean isAtomic) {
+				Name name,
+				boolean isAtomic) {
             this.mods = mods;
             this.name = name;
             this.isAtomic = isAtomic;
@@ -939,7 +945,42 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         }
     }
 
-      /**
+    /**
+     * A unique region declaration
+     * @param modifiers variable modifiers
+     * @param name variable name
+     * @param sym symbol
+     */
+    public static class DPJUniqueRegionDecl 
+	extends JCStatement 
+	implements UniqueRegionTree 
+    {
+        public final DPJRegionParameter param;
+        public final JCStatement copyPhase;
+        protected DPJUniqueRegionDecl(DPJRegionParameter param,
+				      JCStatement copyPhase) 
+	{
+            this.param = param;
+            this.copyPhase = copyPhase;
+        }
+        @Override
+        public void accept(Visitor v) { v.visitUniqueRegionDecl(this); }
+        
+        public Kind getKind() { return Kind.REGION; }
+        public DPJRegionParameter getParameter() { return param; }
+        public JCStatement getCopyPhase() { return copyPhase; }
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            return v.visitUniqueRegion(this, d);
+        }
+
+        @Override
+        public int getTag() {
+            return UNIQUE_REGIONDEF;
+        }
+    }
+
+    /**
      * A no-op statement ";".
      */
     public static class JCSkip extends JCStatement implements EmptyStatementTree {
@@ -2391,7 +2432,10 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         }
     }
     
-    public static class DPJRegionParameter extends JCTree implements RegionParameterTree {
+    public static class DPJRegionParameter 
+    	extends JCTree 
+    	implements RegionParameterTree 
+    {
 
 	public enum Uniqueness {
 	    UNIQUE, SHARED, NONE;
@@ -2903,6 +2947,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
 			               List<DPJRegionPathList> writeEffects,
 			               List<JCIdent> variableEffects);
         DPJRegionDecl RegionDecl(JCModifiers mods, Name name, boolean isAtomic);
+        DPJUniqueRegionDecl UniqueRegionDecl(DPJRegionParameter param, JCStatement copyPhase);
         DPJSpawn Spawn(JCStatement expr);
         DPJFinish Finish(JCStatement body);
         DPJCobegin Cobegin(JCStatement body, boolean isNonDet);
@@ -2924,6 +2969,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         public void visitMethodDef(JCMethodDecl that)        { visitTree(that); }
         public void visitVarDef(JCVariableDecl that)         { visitTree(that); }
         public void visitRegionDecl(DPJRegionDecl that)       { visitTree(that); } // DPJ
+        public void visitUniqueRegionDecl(DPJUniqueRegionDecl that) { visitTree(that); }
         public void visitRPLElt(DPJRegionPathListElt that)   { visitTree(that); } // DPJ
         public void visitRPL(DPJRegionPathList that)         { visitTree(that); } // DPJ
         public void visitEffect(DPJEffect that)  { visitTree(that); } // DPJ

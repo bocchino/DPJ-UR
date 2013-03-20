@@ -102,6 +102,7 @@ import com.sun.tools.javac.tree.JCTree.DPJRegionDecl;
 import com.sun.tools.javac.tree.JCTree.DPJRegionParameter;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathList;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathListElt;
+import com.sun.tools.javac.tree.JCTree.DPJUniqueRegionDecl;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCAssert;
@@ -1892,8 +1893,14 @@ public class Parser {
             case REGION: {
         	pos = S.pos();
                 JCModifiers mods = F.at(Position.NOPOS).Modifiers(0);
-        	stats.appendList(regionDeclarations(pos, mods, null,
-        					    new ListBuffer<JCStatement>()));	
+                accept(REGION);
+                if (S.token() == BANG) {
+                    stats.append(uniqueRegionDecl(pos));
+                }
+                else {
+                    stats.appendList(regionDeclsRest(pos, mods, null,
+                	    new ListBuffer<JCStatement>()));	
+                }
         	storeEnd(stats.elems.last(), S.endPos());
         	break;
             }
@@ -3250,8 +3257,7 @@ public class Parser {
         }
     }
 
-    /** RegionDeclarations =  REGION RegionDecl { "," RegionDecl } ";"
-     * RegionDecl = [ ATOMIC ] Ident
+    /** RegionDeclarations =  REGION RegionDeclsRest
      *  
      *  @param mods     Any modifiers starting the region declaration
      *  @param dc       The documentation comment for the region, or null.
@@ -3261,6 +3267,16 @@ public class Parser {
 				  String dc, T rdefs) 
     {
 	accept(REGION);
+	return regionDeclsRest(pos, mods, dc, rdefs);
+    }
+
+    /** RegionDeclsRest = RegionDecl { "," RegionDecl } ";"
+     *  RegionDecl = [ ATOMIC ] Ident
+     */    
+    <T extends ListBuffer<? super DPJRegionDecl>>T
+    		regionDeclsRest(int pos, JCModifiers mods,
+    				String dc, T rdefs)
+    {
 	boolean isAtomic = false;
 	if (tokenIsIdent("atomic")) {
 	    S.nextToken();
@@ -3281,7 +3297,29 @@ public class Parser {
         accept(SEMI);
         return rdefs;
     }
-
+    
+    /** UniqueRegionDecl = REGION "!" Ident [RegionParameterBound] ( "copies" Stmt | ";" )
+     */
+    DPJUniqueRegionDecl uniqueRegionDecl(int pos) {
+	accept(BANG);
+        Name name = ident();
+        JCTree.DPJRegionPathList bound = null;
+        JCStatement copyPhase = null;
+        if (tokenIsIdent("in")) {
+            S.nextToken();
+            bound = rpl();
+        }
+        DPJRegionParameter param = toP(F.at(pos).RegionParameter(name, 
+        	false, DPJRegionParameter.Uniqueness.UNIQUE, bound));
+        if (tokenIsIdent("copies")) {
+            copyPhase = statement();
+        }
+        else {
+            accept(SEMI);
+        }
+        return toP(F.at(pos).UniqueRegionDecl(param, copyPhase));
+    }
+    
     /**
      * Effect := PURE | [ ReadEffects ] [ WriteEffects ] [ VariableEffects ]
      * ReadEffects := READS QualifiedRPLList
