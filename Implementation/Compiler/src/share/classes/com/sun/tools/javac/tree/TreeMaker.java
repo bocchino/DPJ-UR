@@ -510,8 +510,8 @@ public class TreeMaker implements JCTree.Factory {
         return tree;
     }
 
-    public DPJRegionDecl RegionDecl(JCModifiers mods, Name name, boolean isAtomic) { // DPJ
-        DPJRegionDecl tree = new DPJRegionDecl(mods, name, null, isAtomic);
+    public DPJRegionDecl RegionDecl(JCModifiers mods, Name name, boolean isAtomic) { 
+        DPJRegionDecl tree = new DPJRegionDecl(mods, name, isAtomic);
         tree.pos = pos;
         return tree;
     }

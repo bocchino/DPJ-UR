@@ -911,17 +911,15 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
      * @param sym symbol
      */
     public static class DPJRegionDecl extends JCStatement implements RegionTree {
-        public JCModifiers mods;
-        public Name name;
+        public final JCModifiers mods;
+        public final Name name;
         public RegionNameSymbol sym;
-        public boolean isAtomic;
+        public final boolean isAtomic;
         protected DPJRegionDecl(JCModifiers mods,
 			 Name name,
-			 RegionNameSymbol sym,
 			 boolean isAtomic) {
             this.mods = mods;
             this.name = name;
-            this.sym = sym;
             this.isAtomic = isAtomic;
         }
         @Override
@@ -930,10 +928,6 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         public Kind getKind() { return Kind.REGION; }
         public JCModifiers getModifiers() { return mods; }
         public Name getName() { return name; }
-        //public JCTree getType() { return vartype; }
-        //public JCExpression getInitializer() {
-        //    return init;
-        //}
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             return v.visitRegion(this, d);

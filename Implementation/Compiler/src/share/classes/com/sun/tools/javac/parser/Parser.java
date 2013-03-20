@@ -2985,9 +2985,9 @@ public class Parser {
         return result;
     }
     
-    /** ArrayBody = { RegionDeclarations }                                                                                  
-     *              RefPermOpt Type VariableDeclaratorRest ";"                                                              
-     *                                                                                                                      
+    /** ArrayBody = { RegionDeclarations } 
+     *              RefPermOpt Type VariableDeclaratorRest ";"                   
+     *                                                                           
      */
     List<JCTree> arrayBody(Name arrayName) {
         accept(LBRACE);
@@ -2998,12 +2998,12 @@ public class Parser {
                 Position.NOPOS : S.pos()).Modifiers(flags, annotations);
         ListBuffer<JCTree> defs = new ListBuffer<JCTree>();
 
-        // Get region decls, if any                                                                                         
+        // Get region decls, if any
         if (S.token() == REGION) {
             regionDeclarations(S.pos(), mods, dc, defs).toList();
         }
 
-        // Get field decl                                                                                                   
+        // Get field decl
         JCExpression type = type();
         JCVariableDecl var =
                 variableDeclaratorRest(S.pos(), mods, type,
@@ -3250,17 +3250,16 @@ public class Parser {
         }
     }
 
-    /** RegionDeclarations = 
-     *           REGION [ ATOMIC ] Ident { "," Ident } ";"
-     *
-     *  <p>// DPJ
+    /** RegionDeclarations =  REGION RegionDecl { "," RegionDecl } ";"
+     * RegionDecl = [ ATOMIC ] Ident
      *  
      *  @param mods     Any modifiers starting the region declaration
      *  @param dc       The documentation comment for the region, or null.
      */
-    // <T extends ListBuffer<? super JCVariableDecl>>
-    <T extends ListBuffer<? super DPJRegionDecl>>T regionDeclarations(int pos, JCModifiers mods, String dc, 
-	                           				     T rdefs) {
+    <T extends ListBuffer<? super DPJRegionDecl>>T 
+	       regionDeclarations(int pos, JCModifiers mods, 
+				  String dc, T rdefs) 
+    {
 	accept(REGION);
 	boolean isAtomic = false;
 	if (tokenIsIdent("atomic")) {
