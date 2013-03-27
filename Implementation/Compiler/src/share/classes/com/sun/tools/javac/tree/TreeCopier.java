@@ -92,9 +92,10 @@ import com.sun.source.tree.WildcardTree;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree.DPJAtomic;
 import com.sun.tools.javac.tree.JCTree.DPJCobegin;
-import com.sun.tools.javac.tree.JCTree.DPJEffect;
+import com.sun.tools.javac.tree.JCTree.DPJCopyEffect;
 import com.sun.tools.javac.tree.JCTree.DPJFinish;
 import com.sun.tools.javac.tree.JCTree.DPJForLoop;
+import com.sun.tools.javac.tree.JCTree.DPJEffect;
 import com.sun.tools.javac.tree.JCTree.DPJNonint;
 import com.sun.tools.javac.tree.JCTree.DPJParamInfo;
 import com.sun.tools.javac.tree.JCTree.DPJRegionDecl;
@@ -202,7 +203,7 @@ public class TreeCopier<P> implements TreeVisitor<JCTree,P> {
             lb.append(copy(tree, p));
         return lb.toList();
     }
-
+    
     public JCTree visitAnnotation(AnnotationTree node, P p) {
         JCAnnotation t = (JCAnnotation) node;
         JCTree annotationType = copy(t.annotationType, p);
@@ -602,20 +603,21 @@ public class TreeCopier<P> implements TreeVisitor<JCTree,P> {
 	return M.at(t.pos).RegionPathList(elts);
     }
     
-    public JCTree visitMethEffects(EffectTree node, P p) {
+    public JCTree visitEffect(EffectTree node, P p) {
 	DPJEffect t = (DPJEffect) node;
 	List<DPJRegionPathList> readEffects = copy(t.readEffects, p);
 	List<DPJRegionPathList> writeEffects = copy(t.writeEffects, p);
+	List<DPJCopyEffect> copyEffects = copy(t.copyEffects, p);
 	List<JCIdent> variableEffects = copy(t.variableEffects, p);
 	return M.at(t.pos).Effect(t.isPure, readEffects, writeEffects,
-		variableEffects);
+		t.renames, copyEffects, variableEffects);
     }
     
     public JCTree visitRegionParameter(RegionParameterTree node, P p) {
 	DPJRegionParameter t = (DPJRegionParameter) node;
 	DPJRegionPathList bound = copy(t.bound, p);
 	DPJRegionParameter result = M.at(t.pos).RegionParameter(t.name, 
-		t.isAtomic, t.uniqueness, bound);
+		t.isAtomic, t.isUnique, bound);
 	result.sym = t.sym;
 	return result;
     }

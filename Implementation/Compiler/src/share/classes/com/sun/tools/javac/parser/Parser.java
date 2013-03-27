@@ -96,6 +96,7 @@ import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Source;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.DPJCopyEffect;
 import com.sun.tools.javac.tree.JCTree.DPJEffect;
 import com.sun.tools.javac.tree.JCTree.DPJParamInfo;
 import com.sun.tools.javac.tree.JCTree.DPJRegionDecl;
@@ -3310,7 +3311,7 @@ public class Parser {
             bound = rpl();
         }
         DPJRegionParameter param = toP(F.at(pos).RegionParameter(name, 
-        	false, DPJRegionParameter.Uniqueness.UNIQUE, bound));
+        	false, true, bound));
         if (tokenIsIdent("copies")) {
             copyPhase = statement();
         }
@@ -3321,15 +3322,18 @@ public class Parser {
     }
     
     /**
-     * Effect := PURE | [ ReadEffects ] [ WriteEffects ] [ VariableEffects ]
+     * Effect := PURE | [ ReadEffects ] [ WriteEffects ] [ ( CopyEffects | "renames" ) ] [ VariableEffects ]
      * ReadEffects := READS QualifiedRPLList
      * WriteEffects := WRITES QualifiedRPLList
+     * CopyEffects := "copies" CopyEffects
      * VariableEffects := "effect" Ident { "," [ "effect" ] Ident }
      */
     DPJEffect effect(int pos) {	
         boolean isPure = false;
         List<JCTree.DPJRegionPathList> readEffects = List.nil();
         List<JCTree.DPJRegionPathList> writeEffects = List.nil();
+        boolean renames = false;
+        List<JCTree.DPJCopyEffect> copyEffects = List.nil(); 
         List<JCIdent> variableEffects = List.nil();
         if (S.token() == PURE) {
             S.nextToken();
@@ -3343,6 +3347,14 @@ public class Parser {
         	S.nextToken();
         	writeEffects = qualifiedRPLList();
             }
+            if (tokenIsIdent("copies")) {
+        	S.nextToken();
+        	copyEffects = copyEffects();        
+            }
+            else if (tokenIsIdent("renames")) {
+        	S.nextToken();
+        	renames = true;
+            }
             if (tokenIsIdent("effect")) {
         	// TODO: Implement atomic and nonint effect vars
         	variableEffects = effectParams();
@@ -3350,7 +3362,7 @@ public class Parser {
         }
         JCTree.DPJEffect result = 
             toP(F.at(pos).Effect(isPure, readEffects, writeEffects,
-        	    variableEffects));
+        	    renames, copyEffects, variableEffects));
         return result;
     }
     
@@ -3458,6 +3470,33 @@ public class Parser {
 	    lb.append(effect(S.pos()));
 	}
 	return lb.toList();
+    }
+
+    /** CopyEffects = CopyEffect { "," CopyEffect }
+     */
+    List<DPJCopyEffect> copyEffects() {
+	ListBuffer<DPJCopyEffect> lb = ListBuffer.lb();
+	lb.append(copyEffect());
+	while (S.token() == COMMA) {
+	    S.nextToken();
+	    lb.append(copyEffect());
+	}
+	return lb.toList();
+    }
+
+    /** CopyEffect = RPL "to" RPL
+     */
+    DPJCopyEffect copyEffect() {
+	int pos = S.pos();
+	DPJRegionPathList from = rpl();
+	if (tokenIsIdent("in")) {
+	    S.nextToken();
+	}
+	else {
+            reportSyntaxError(S.prevEndPos(), "expected", "in");
+	}
+	DPJRegionPathList to = rpl();
+	return toP(F.at(pos).CopyEffect(from, to));
     }
     
     /** ParametersOpt := [ "<" TypeRPLEffectParams ">" ]
@@ -3598,26 +3637,20 @@ public class Parser {
 	return params.toList();
     }
     
-    /** RegionParameter = [REGION] [ATOMIC] ["!" | "shared"] RegionVariable [RegionParameterBound]
+    /** RegionParameter = [REGION] [ ( ATOMIC | "!" ) ] Ident [RegionParameterBound]
      *  RegionParameterBound = 'in' RegionPathList
-     *  RegionVariable = Ident
      */
     DPJRegionParameter regionParameter() {
 	if (S.token() == REGION) S.nextToken();
 	boolean isAtomic = false;
-	DPJRegionParameter.Uniqueness uniqueness =
-		DPJRegionParameter.Uniqueness.NONE;
+	boolean isUnique = false;
 	if (tokenIsIdent("atomic")) {
 	    S.nextToken();
 	    isAtomic = true;
 	}
-	if (S.token() == BANG) {
+	else if (S.token() == BANG) {
 	    S.nextToken();
-	    uniqueness = DPJRegionParameter.Uniqueness.UNIQUE;
-	}
-	else if (tokenIsIdent("shared")) {
-	    S.nextToken();
-	    uniqueness = DPJRegionParameter.Uniqueness.SHARED;	    
+	    isUnique = true;
 	}
 	int pos = S.pos();
         Name name = ident();
@@ -3627,7 +3660,7 @@ public class Parser {
             bound = rpl();
         }
         return toP(F.at(pos).RegionParameter(name, isAtomic,
-        	uniqueness, bound));
+        	isUnique, bound));
     }
     
     /** EffectParam := [ "effect" ] Ident
@@ -3657,8 +3690,12 @@ public class Parser {
 	}
 	List<JCIdent> variableEffects = effectParams();
 	DPJEffect left = 
-	    toP(F.at(pos).Effect(false, List.<DPJRegionPathList>nil(), 
-		    List.<DPJRegionPathList>nil(), variableEffects));
+	    toP(F.at(pos).Effect(false, 
+		    List.<DPJRegionPathList>nil(), 
+		    List.<DPJRegionPathList>nil(), 
+		    false,
+		    List.<DPJCopyEffect>nil(),
+		    variableEffects));
 	accept(NUMBER);
 	DPJEffect right = effect(S.pos());
 	return new Pair<DPJEffect,DPJEffect>(left,right);

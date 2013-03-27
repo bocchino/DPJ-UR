@@ -458,9 +458,9 @@ public class TreeMaker implements JCTree.Factory {
     }
     
     public DPJRegionParameter RegionParameter(Name name, boolean isAtomic,
-	    DPJRegionParameter.Uniqueness uniqueness, DPJRegionPathList bound) {
+	    boolean isUnique, DPJRegionPathList bound) {
 	DPJRegionParameter tree = new DPJRegionParameter(name, isAtomic, 
-		uniqueness, bound);
+		isUnique, bound);
 	tree.pos = pos;
 	return tree;
     }
@@ -535,11 +535,22 @@ public class TreeMaker implements JCTree.Factory {
         return tree;
     }
     
-    public DPJEffect Effect(boolean isPure, List<DPJRegionPathList> readEffects,
-	    		    List<DPJRegionPathList> writeEffects,
-	    		    List<JCIdent> variableEffects) {
+    public DPJEffect Effect(boolean isPure, 
+	    			   List<DPJRegionPathList> readEffects,
+	    			   List<DPJRegionPathList> writeEffects,
+	    			   boolean renames,
+	    			   List<DPJCopyEffect> copyEffects,
+	    			   List<JCIdent> variableEffects) {
 	DPJEffect tree = new DPJEffect(isPure, readEffects, writeEffects,
-				       variableEffects);
+				       		     renames, copyEffects, variableEffects);
+	tree.pos = pos;
+	return tree;
+    }
+    
+    public DPJCopyEffect CopyEffect(DPJRegionPathList from,
+	    			    DPJRegionPathList to)
+    {
+	DPJCopyEffect tree = new DPJCopyEffect(from, to);
 	tree.pos = pos;
 	return tree;
     }

@@ -459,7 +459,7 @@ public class TreeScanner<R,P> implements TreeVisitor<R,P> {
 	return null; // DPJ FIXME
     }
     
-    public R visitMethEffects(EffectTree node, P p) { // DPJ
+    public R visitEffect(EffectTree node, P p) { // DPJ
 	return null; // DPJ FIXME
     }
     

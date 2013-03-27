@@ -413,11 +413,15 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         
     /** Method effects // DPJ
      */
-    public static final int METHOD_EFFECTS = UNIQUE_REGIONDEF + 1;
+    public static final int EFFECT = UNIQUE_REGIONDEF + 1;
+    
+    /** Copy effect
+     */
+    public static final int COPY_EFFECT = EFFECT + 1;
     
     /** Formal region parameter, of type RegionParameter.
      */
-    public static final int REGIONPARAMETER = METHOD_EFFECTS + 1;
+    public static final int REGIONPARAMETER = COPY_EFFECT + 1;
     
     /** Region parameter info
      */
@@ -2009,6 +2013,8 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
 	private int opcode;
         public JCExpression arg;
         public Symbol operator;
+        /** Flag indicating destructive access !e.f */
+        public boolean isDestructiveAccess;
         protected JCUnary(int opcode, JCExpression arg) {
             this.opcode = opcode;
             this.arg = arg;
@@ -2437,23 +2443,18 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
     	implements RegionParameterTree 
     {
 
-	public enum Uniqueness {
-	    UNIQUE, SHARED, NONE;
-	}
-	
 	public Name name;
-        // TODO: This is currently unused
         public DPJRegionPathList bound;
         public boolean isAtomic;
-        public final Uniqueness uniqueness;
+        public final boolean isUnique;
 	public RegionParameterSymbol sym; // Set by the Enter class
 	
         protected DPJRegionParameter(Name name, boolean isAtomic,
-        	Uniqueness uniqueness, DPJRegionPathList bound) {
+        	boolean isUnique, DPJRegionPathList bound) {
             this.name = name;
             this.bound = bound;
-            this.uniqueness = uniqueness;
             this.isAtomic = isAtomic;
+            this.isUnique = isUnique;
         }
 	@Override
 	public void accept(Visitor v) { v.visitRegionParameter(this); }
@@ -2605,20 +2606,31 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
 	
     }
         
-    public static class DPJEffect extends JCTree implements EffectTree {
+    public static class DPJEffect 
+    	extends JCTree 
+    	implements EffectTree 
+    {
 
-	public boolean isPure;
-	public List<DPJRegionPathList> readEffects;
-	public List<DPJRegionPathList> writeEffects;
+	public final boolean isPure;
+	public final List<DPJRegionPathList> readEffects;
+	public final List<DPJRegionPathList> writeEffects;
+	public final List<DPJCopyEffect> copyEffects;
+	public final boolean renames;
 	public List<JCIdent> variableEffects;
 	public Effects effects;
 	
-	protected DPJEffect(boolean isPure, List<DPJRegionPathList> readEffects,
-		            List<DPJRegionPathList> writeEffects,
-		            List<JCIdent> variableEffects) {
+	protected DPJEffect(boolean isPure, 
+				   List<DPJRegionPathList> readEffects,
+		                   List<DPJRegionPathList> writeEffects,
+		                   boolean renames,
+		                   List<DPJCopyEffect> copyEffects,
+		            	   List<JCIdent> variableEffects) 
+	{
 	    this.isPure = isPure;
 	    this.readEffects = readEffects;
 	    this.writeEffects = writeEffects;
+	    this.renames = renames;
+	    this.copyEffects = copyEffects;
 	    this.variableEffects = variableEffects;
 	}
 	
@@ -2629,17 +2641,52 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
 
 	@Override
 	public <R, D> R accept(TreeVisitor<R, D> v, D d) {
-	    return v.visitMethEffects(this, d);
+	    return v.visitEffect(this, d);
 	}
 
 	@Override
 	public int getTag() {
-	    return METHOD_EFFECTS;
+	    return EFFECT;
 	}
 
 	public Kind getKind() {
-	    return Kind.METHOD_EFFECTS;
+	    return Kind.EFFECT;
 	}	
+    }
+    
+    public static class DPJCopyEffect 
+    	extends JCTree 
+    	implements EffectTree 
+    {
+
+ 	public final DPJRegionPathList from;
+ 	public final DPJRegionPathList to;
+ 	
+ 	protected DPJCopyEffect(DPJRegionPathList from,
+ 				DPJRegionPathList to)
+ 	{
+ 	    this.from = from;
+ 	    this.to = to;
+ 	}
+ 	
+ 	@Override
+ 	public void accept(Visitor v) {
+ 	    v.visitCopyEffect(this);
+ 	}
+
+ 	@Override
+ 	public <R, D> R accept(TreeVisitor<R, D> v, D d) {
+ 	    return v.visitEffect(this, d);
+ 	}
+
+ 	@Override
+ 	public int getTag() {
+ 	    return COPY_EFFECT;
+ 	}
+
+ 	public Kind getKind() {
+ 	    return Kind.EFFECT;
+ 	}	
     }
     
     public static class JCWildcard extends JCExpression implements WildcardTree {
@@ -2935,7 +2982,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         DPJForLoop DPJForLoop(JCVariableDecl var, JCExpression start, JCExpression length,
         	              JCExpression stride, JCStatement body, boolean isNonDet);
         DPJRegionParameter RegionParameter(Name name, boolean isAtomic,
-        	DPJRegionParameter.Uniqueness uniqueness, DPJRegionPathList bound);
+        	boolean isUnique, DPJRegionPathList bound);
         DPJParamInfo ParamInfo(List<DPJRegionParameter> rplParams,
         		List<Pair<DPJRegionPathList,DPJRegionPathList>> rplConstraints,
         		List<JCIdent> effectParams,
@@ -2943,9 +2990,12 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         DPJRegionPathListElt RegionPathListElt(JCExpression exp, int t);
         DPJRegionPathList RegionPathList(List<DPJRegionPathListElt> elts);
         DPJEffect Effect(boolean isPure,
-			               List<DPJRegionPathList> readEffects,
-			               List<DPJRegionPathList> writeEffects,
-			               List<JCIdent> variableEffects);
+			 List<DPJRegionPathList> readEffects,
+			 List<DPJRegionPathList> writeEffects,
+			 boolean renames,
+			 List<DPJCopyEffect> copyEffects,
+			 List<JCIdent> variableEffects);
+        DPJCopyEffect CopyEffect(DPJRegionPathList from, DPJRegionPathList to);
         DPJRegionDecl RegionDecl(JCModifiers mods, Name name, boolean isAtomic);
         DPJUniqueRegionDecl UniqueRegionDecl(DPJRegionParameter param, JCStatement copyPhase);
         DPJSpawn Spawn(JCStatement expr);
@@ -2973,6 +3023,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         public void visitRPLElt(DPJRegionPathListElt that)   { visitTree(that); } // DPJ
         public void visitRPL(DPJRegionPathList that)         { visitTree(that); } // DPJ
         public void visitEffect(DPJEffect that)  { visitTree(that); } // DPJ
+        public void visitCopyEffect(DPJCopyEffect that)      { visitTree(that); }
         public void visitSkip(JCSkip that)                   { visitTree(that); }
         public void visitBlock(JCBlock that)                 { visitTree(that); }
         public void visitDoLoop(JCDoWhileLoop that)          { visitTree(that); }

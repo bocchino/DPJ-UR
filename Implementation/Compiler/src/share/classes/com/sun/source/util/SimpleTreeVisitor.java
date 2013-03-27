@@ -268,7 +268,7 @@ public class SimpleTreeVisitor <R,P> implements TreeVisitor<R,P> {
 	return defaultAction(node, p);
     }
     
-    public R visitMethEffects(EffectTree node, P p) { // DPJ
+    public R visitEffect(EffectTree node, P p) { // DPJ
 	return defaultAction(node, p);
     }
     

@@ -353,7 +353,15 @@ public class TreeScanner extends Visitor {
     }
     
     public void visitEffect(DPJEffect tree)  {
-	
+	scan(tree.readEffects);
+	scan(tree.writeEffects);
+	scan(tree.copyEffects);
+	scan(tree.variableEffects);
+    }
+    
+    public void visitCopyEffect(DPJCopyEffect tree) {
+	scan(tree.from);
+	scan(tree.to);
     }
 
     public void visitTree(JCTree tree) {

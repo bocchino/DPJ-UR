@@ -115,7 +115,7 @@ public interface Tree {
          * Used for instances of {@link ContinueTree}.
          */
         CONTINUE(ContinueTree.class),
-
+        
         /**
          * Used for instances of {@link DoWhileLoopTree}.
          */
@@ -172,10 +172,10 @@ public interface Tree {
         METHOD(MethodTree.class),
         
         /**
-         * Used for instances of {@link MethodEffectsTree}.
+         * Used for instances of {@link EffectTree}.
          */
-        METHOD_EFFECTS(EffectTree.class),
-
+        EFFECT(EffectTree.class),
+        
         /**
          * Used for instances of {@link MethodInvocationTree}.
          */
