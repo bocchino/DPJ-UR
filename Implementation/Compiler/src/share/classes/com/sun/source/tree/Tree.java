@@ -212,6 +212,11 @@ public interface Tree {
         REGION(RegionTree.class),
 
         /**
+         * Used for instances of {@link UniqueRegionTree}. // DPJ
+         */
+        UNIQUE_REGION(UniqueRegionTree.class),
+
+        /**
          * Used for instances of {@link RPLEltTree}. // DPJ
          */
         RPL_ELT(RPLEltTree.class),

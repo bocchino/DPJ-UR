@@ -970,7 +970,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         @Override
         public void accept(Visitor v) { v.visitUniqueRegionDecl(this); }
         
-        public Kind getKind() { return Kind.REGION; }
+        public Kind getKind() { return Kind.UNIQUE_REGION; }
         public DPJRegionParameter getParameter() { return param; }
         public JCStatement getCopyPhase() { return copyPhase; }
         @Override
