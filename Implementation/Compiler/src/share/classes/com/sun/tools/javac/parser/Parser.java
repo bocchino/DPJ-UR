@@ -2343,6 +2343,7 @@ public class Parser {
     /** ModifiersOpt = { Modifier }
      *  Modifier = PUBLIC | PROTECTED | PRIVATE | STATIC | ABSTRACT | FINAL
      *           | NATIVE | SYNCHRONIZED | TRANSIENT | VOLATILE | "@"
+     *           | COMMUTATIVE | SHARED 
      *           | "@" Annotation
      */
     JCModifiers modifiersOpt() {
@@ -2375,7 +2376,13 @@ public class Parser {
             case STRICTFP    : flag = Flags.STRICTFP; break;
             case MONKEYS_AT  : flag = Flags.ANNOTATION; break;
             case COMMUTATIVE : flag = Flags.ISCOMMUTATIVE; break;
-            default: break loop;
+            default: 
+        	if (tokenIsIdent("shared")) {
+        	    flag = Flags.SHARED; break;
+        	}
+        	else {
+        	    break loop;
+        	}
             }
             if ((flags & flag) != 0) log.error(S.pos(), "repeated.modifier");
             lastPos = S.pos();

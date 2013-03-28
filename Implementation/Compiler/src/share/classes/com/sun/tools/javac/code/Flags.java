@@ -72,6 +72,7 @@ public class Flags {
         if ((flags&ACYCLIC) != 0) buf.append("acyclic ");
         if ((flags&PARAMETER) != 0) buf.append("parameter ");
         if ((flags&VARARGS) != 0) buf.append("varargs ");
+        if ((flags&SHARED) != 0) buf.append("shared ");
         if ((flags&ISCOMMUTATIVE) != 0) buf.append("commutative ");
         return buf.toString();
     }
@@ -110,8 +111,12 @@ public class Flags {
      */
     public static final int ARRAYCLASS            = 1<<16;
     
+    /** Flag that denotes a shared class
+     */
+    public static final int SHARED	 = 1<<17;
+    
     public static final int StandardFlags = 0x0fff;
-    public static final int DPJStandardFlags = StandardFlags | ISCOMMUTATIVE | ARRAYCLASS;
+    public static final int DPJStandardFlags = StandardFlags | ISCOMMUTATIVE | ARRAYCLASS | SHARED;
 
     // Because the following access flags are overloaded with other
     // bit positions, we translate them when reading and writing class
