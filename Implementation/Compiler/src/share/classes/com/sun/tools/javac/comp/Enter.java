@@ -520,7 +520,8 @@ public class Enter extends JCTree.Visitor {
 		STATIC,     // Treat regions as static class members
 		tree.name,
 		env.info.scope.owner,
-		tree.isAtomic);
+		tree.isAtomic,
+		tree.isUnique);
 	if (chk.checkUnique(tree.pos(), sym, env.info.scope)) {
 	    env.info.scope.enter(sym);
 	    tree.sym = sym;

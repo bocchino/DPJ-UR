@@ -1138,17 +1138,22 @@ public abstract class Symbol implements
         
         /** Whether the parameter is atomic
          */
-        public boolean isAtomic;
+        public final boolean isAtomic;
+        
+        /** Whether the parameter is unique
+         */
+        public final boolean isUnique;
         
         /** Construct a variable symbol, given its flags, name, type and owner.
          */
         public static int numIDs = 0;
         public int ID = 0;
         public RegionParameterSymbol(long flags, Name name, 
-        	Symbol owner, boolean isAtomic) {
+        	Symbol owner, boolean isAtomic, boolean isUnique) {
             super(RPL_ELT, flags, name, owner);
             this.ID = numIDs++;
             this.isAtomic = isAtomic;
+            this.isUnique = isUnique;
         }
         
         /** Clone this symbol with new owner.
@@ -1156,20 +1161,17 @@ public abstract class Symbol implements
         public RegionParameterSymbol clone(Symbol newOwner) {
             RegionParameterSymbol v = 
         	new RegionParameterSymbol(flags_field, name, newOwner,
-        		isAtomic);
+        		isAtomic, isUnique);
             v.pos = pos;
-            //System.err.println("clone " + v + " in " + newOwner);//DEBUG
             return v;
         }
 
         public String toString() {
-            // TODO: Fix porting tool so code generation is not broken by
-            // printing the ID
-            return name.toString() ;//+ " " + ID;
+            return name.toString() ;
         }
         
         public Symbol asMemberOf(Type site, Types types) {
-            return new RegionParameterSymbol(flags_field, name, owner, isAtomic);
+            return new RegionParameterSymbol(flags_field, name, owner, isAtomic, isUnique);
         }
 
         public ElementKind getKind() {

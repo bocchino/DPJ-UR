@@ -130,6 +130,7 @@ import com.sun.tools.javac.tree.JCTree.DPJRegionParameter;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathList;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathListElt;
 import com.sun.tools.javac.tree.JCTree.DPJSpawn;
+import com.sun.tools.javac.tree.JCTree.DPJUniqueRegionDecl;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
@@ -953,7 +954,7 @@ public class Attr extends JCTree.Visitor {
     public void enterClassParams(JCClassDecl tree, Env<AttrContext> localEnv) {
 	// Enter region parameter info
 	if (tree.paramInfo != null) {
-	    // TODO: Store all contraints
+	    // TODO: Store all constraints
 	    tree.sym.constraints = 
 		enterRegionParamInfo(tree.paramInfo, localEnv);
         }
@@ -3791,6 +3792,24 @@ public class Attr extends JCTree.Visitor {
                 annotate.flush();
             }
         }
+    }
+    
+    public void visitUniqueRegionDecl(DPJUniqueRegionDecl tree) {
+	if (tree.param.sym != null) {
+	    env.info.scope.enter(tree.param.sym);
+	}
+	else {
+	    RegionParameterSymbol sym = new RegionParameterSymbol(
+		    STATIC,     // Treat regions as static class members
+		    tree.param.name,
+		    env.info.scope.owner,
+		    tree.param.isAtomic,
+		    tree.param.isUnique);
+	    if (chk.checkUnique(tree.pos(), sym, env.info.scope)) {
+		env.info.scope.enter(sym);
+		tree.param.sym = sym;
+	    }
+	}
     }
 
     public void visitFinish(DPJFinish tree) {

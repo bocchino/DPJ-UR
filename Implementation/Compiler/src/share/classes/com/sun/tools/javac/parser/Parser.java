@@ -3320,6 +3320,7 @@ public class Parser {
         DPJRegionParameter param = toP(F.at(pos).RegionParameter(name, 
         	false, true, bound));
         if (tokenIsIdent("copies")) {
+            S.nextToken();
             copyPhase = statement();
         }
         else {

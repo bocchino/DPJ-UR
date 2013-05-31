@@ -2442,11 +2442,12 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
     	extends JCTree 
     	implements RegionParameterTree 
     {
-
-	public Name name;
-        public DPJRegionPathList bound;
-        public boolean isAtomic;
+	
+        public final boolean isAtomic;
         public final boolean isUnique;
+	public final Name name;
+        public final DPJRegionPathList bound;
+        
 	public RegionParameterSymbol sym; // Set by the Enter class
 	
         protected DPJRegionParameter(Name name, boolean isAtomic,
@@ -2484,10 +2485,10 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
     }
     
     public static class DPJParamInfo extends JCTree implements ParamInfoTree {
-        public List<DPJRegionParameter> rplParams;
-        public List<Pair<DPJRegionPathList,DPJRegionPathList>> rplConstraints;
-        public List<JCIdent> effectParams;
-        public List<Pair<DPJEffect,DPJEffect>> effectConstraints;
+        public final List<DPJRegionParameter> rplParams;
+        public final List<Pair<DPJRegionPathList,DPJRegionPathList>> rplConstraints;
+        public final List<JCIdent> effectParams;
+        public final List<Pair<DPJEffect,DPJEffect>> effectConstraints;
         protected DPJParamInfo(List<DPJRegionParameter> rplParams,
         	List<Pair<DPJRegionPathList,DPJRegionPathList>> rplConstraints,
         	List<JCIdent> effectParams,
@@ -2526,7 +2527,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
 
     public static class DPJRegionPathListElt extends JCTree implements RPLEltTree {
 
-	public JCExpression exp;
+	public final JCExpression exp;
 	
 	/** Associated {@link RPLElement} -- set in {@link Attr} */
 	public RPLElement rplElt = null;
@@ -2540,7 +2541,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
 	/** A '[?]' RPL element. */
 	public static final int ARRAY_UNKNOWN = ARRAY_INDEX + 1;
 	
-	public int type = NAME;
+	public final int type;
 	
 	protected DPJRegionPathListElt(JCExpression exp, int t) {
 	    this.exp = exp;

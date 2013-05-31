@@ -62,6 +62,7 @@ import com.sun.tools.javac.tree.JCTree.DPJRegionParameter;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathList;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathListElt;
 import com.sun.tools.javac.tree.JCTree.DPJSpawn;
+import com.sun.tools.javac.tree.JCTree.DPJUniqueRegionDecl;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
@@ -758,6 +759,10 @@ public class Pretty extends JCTree.Visitor {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+    
+    public void visitUniqueRegionDecl(DPJUniqueRegionDecl tree) {
+	// Nothing to do
     }
 
     public void visitRPLElt(DPJRegionPathListElt tree) { // DPJ
@@ -2272,12 +2277,4 @@ public class Pretty extends JCTree.Visitor {
         }
     }
 
-    public void visitTree(JCTree tree) {
-        try {
-            print("(UNKNOWN: " + tree + ")");
-            println();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
 }
