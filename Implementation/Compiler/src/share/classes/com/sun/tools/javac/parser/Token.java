@@ -158,7 +158,7 @@ public enum Token {
     PURE("pure"),
     READS("reads"),
     REGION("region"),
-    RENAMES("renames"),
+    SPAWN("spawn"),
     WRITES("writes");
 
     

@@ -377,7 +377,7 @@ public class TreeTranslator extends JCTree.Visitor {
 	result = tree;
     }
     
-    public void visitSpawn(DPJRenames tree) {
+    public void visitSpawn(DPJSpawn tree) {
 	tree.body = translate(tree.body);
 	result = tree;
     }

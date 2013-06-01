@@ -61,7 +61,7 @@ import com.sun.tools.javac.tree.JCTree.DPJRegionDecl;
 import com.sun.tools.javac.tree.JCTree.DPJRegionParameter;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathList;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathListElt;
-import com.sun.tools.javac.tree.JCTree.DPJRenames;
+import com.sun.tools.javac.tree.JCTree.DPJSpawn;
 import com.sun.tools.javac.tree.JCTree.DPJUniqueRegionDecl;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
@@ -1543,7 +1543,7 @@ public class Pretty extends JCTree.Visitor {
         }
     }
     
-    public void visitSpawn(DPJRenames tree) {
+    public void visitSpawn(DPJSpawn tree) {
 	try {
 	    if (codeGenMode == NONE) {
 		print("spawn ");
@@ -1897,6 +1897,11 @@ public class Pretty extends JCTree.Visitor {
 
     public void visitUnary(JCUnary tree) {
         try {
+            if (tree.isDestructiveAccess) {
+        	// TODO: Implement destructive access
+        	printExpr(tree.arg);
+        	return;
+            }
             int ownprec = TreeInfo.opPrec(tree.getTag());
             String opname = operatorName(tree.getTag());
             open(prec, ownprec);

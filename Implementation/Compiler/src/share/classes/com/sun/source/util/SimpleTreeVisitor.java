@@ -284,7 +284,7 @@ public class SimpleTreeVisitor <R,P> implements TreeVisitor<R,P> {
 	return defaultAction(node, p);
     }
     
-    public R visitRenames(RenamesTree node, P p) {
+    public R visitSpawn(SpawnTree node, P p) {
 	return defaultAction(node, p);
     }
     

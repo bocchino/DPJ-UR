@@ -864,10 +864,14 @@ public class Types {
 
     boolean containsRegions(List<RPL> ts, List<RPL> ss, boolean requireEqualRegions) {
 	if (requireEqualRegions) return equalRegions(ts, ss);
-	while (ts.nonEmpty() && ss.nonEmpty()
-		&& ss.head.isIncludedIn(ts.head)) {
-             ts = ts.tail;
-             ss = ss.tail;
+	while (ts.nonEmpty() && ss.nonEmpty()) {
+	    if (!ss.head.isIncludedIn(ts.head)) {
+		// TODO: Tighten this up
+		if (!ss.head.isUnique() || !ts.head.isUnique())
+		    break;
+	    }
+	    ts = ts.tail;
+	    ss = ss.tail;
          }
         return ts.isEmpty() && ss.isEmpty();	
     }

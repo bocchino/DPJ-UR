@@ -365,8 +365,8 @@ public class TreeMaker implements JCTree.Factory {
         return tree;
     }
 
-    public DPJRenames Renames(JCStatement body) {
-	DPJRenames tree = new DPJRenames(body);
+    public DPJSpawn Spawn(JCStatement body) {
+	DPJSpawn tree = new DPJSpawn(body);
 	tree.pos = pos;
 	return tree;
     }

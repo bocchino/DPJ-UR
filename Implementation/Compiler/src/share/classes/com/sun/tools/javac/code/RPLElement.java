@@ -32,6 +32,11 @@ public abstract class RPLElement {
     public boolean isAtomic() { return false; }
     
     /**
+     * Whether the element is unique
+     */
+    public boolean isUnique() { return false; }
+    
+    /**
      * Whether the element is fully specified (i.e., contains no * or [?]).
      */
     public boolean isFullySpecified() { return true; }
@@ -183,6 +188,11 @@ public abstract class RPLElement {
 	@Override
 	public boolean isAtomic() {
 	    return sym.isAtomic;
+	}
+	
+	@Override
+	public boolean isUnique() {
+	    return sym.isUnique;
 	}
 	
 	/** RPL in which this parameter is included -- used for capture parameters

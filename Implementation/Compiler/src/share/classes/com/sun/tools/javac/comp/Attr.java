@@ -129,7 +129,7 @@ import com.sun.tools.javac.tree.JCTree.DPJRegionDecl;
 import com.sun.tools.javac.tree.JCTree.DPJRegionParameter;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathList;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathListElt;
-import com.sun.tools.javac.tree.JCTree.DPJRenames;
+import com.sun.tools.javac.tree.JCTree.DPJSpawn;
 import com.sun.tools.javac.tree.JCTree.DPJUniqueRegionDecl;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
@@ -2214,8 +2214,9 @@ public class Attr extends JCTree.Visitor {
             : chk.checkNonVoid(tree.arg.pos(), attribExpr(tree.arg, env));
 
         // Find operator.
-        Symbol operator = tree.operator =
-            rs.resolveUnaryOperator(tree.pos(), tree.getTag(), env, argtype);
+        Symbol operator = tree.operator = (tree.getTag() == JCTree.NOT) ?
+        	rs.resolveUnaryOperator(tree.pos(), tree.getTag(), env, syms.booleanType) :
+        	    rs.resolveUnaryOperator(tree.pos(), tree.getTag(), env, argtype);
 
         Type owntype = syms.errType;
         if (operator.kind == MTH) {
@@ -3865,7 +3866,7 @@ public class Attr extends JCTree.Visitor {
     
     /** Visitor method for spawn.
      */
-    public void visitSpawn(DPJRenames tree) {
+    public void visitSpawn(DPJSpawn tree) {
         attribStat(tree.body, env);
         result = null;
     }

@@ -82,7 +82,7 @@ import com.sun.source.tree.RPLTree;
 import com.sun.source.tree.RegionParameterTree;
 import com.sun.source.tree.RegionTree;
 import com.sun.source.tree.ReturnTree;
-import com.sun.source.tree.RenamesTree;
+import com.sun.source.tree.SpawnTree;
 import com.sun.source.tree.StatementTree;
 import com.sun.source.tree.SwitchTree;
 import com.sun.source.tree.SynchronizedTree;
@@ -433,11 +433,11 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
     
     /** Spawn statements, of type Spawn
      */
-    public static final int RENAMES = REGIONAPPLY + 1;
+    public static final int SPAWN = REGIONAPPLY + 1;
     
     /** Finish statements, of type Finish
      */
-    public static final int FINISH = RENAMES + 1;
+    public static final int FINISH = SPAWN + 1;
     
     /** Cobegin statements, of type Cobegin
      */
@@ -1927,23 +1927,23 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
     /**
      * A renames statement
      */
-    public static class DPJRenames extends JCStatement implements RenamesTree {
+    public static class DPJSpawn extends JCStatement implements SpawnTree {
         public JCStatement body;
-        protected DPJRenames(JCStatement body) {
+        protected DPJSpawn(JCStatement body) {
             this.body = body;
         }
         @Override
         public void accept(Visitor v) { v.visitSpawn(this); }
 
-        public Kind getKind() { return Kind.RENAMES; }
+        public Kind getKind() { return Kind.SPAWN; }
         public JCStatement getStatement() { return body; }
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
-            return v.visitRenames(this, d);
+            return v.visitSpawn(this, d);
         }
         @Override
         public int getTag() {
-            return RENAMES;
+            return SPAWN;
         }	
     }
     
@@ -2999,7 +2999,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         DPJCopyEffect CopyEffect(DPJRegionPathList from, DPJRegionPathList to);
         DPJRegionDecl RegionDecl(JCModifiers mods, Name name, boolean isAtomic);
         DPJUniqueRegionDecl UniqueRegionDecl(DPJRegionParameter param, JCStatement copyPhase);
-        DPJRenames Renames(JCStatement expr);
+        DPJSpawn Spawn(JCStatement expr);
         DPJFinish Finish(JCStatement body);
         DPJCobegin Cobegin(JCStatement body, boolean isNonDet);
         DPJAtomic Atomic(JCStatement body);
@@ -3071,7 +3071,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         public void visitModifiers(JCModifiers that)         { visitTree(that); }
         public void visitErroneous(JCErroneous that)         { visitTree(that); }
         public void visitLetExpr(LetExpr that)               { visitTree(that); }
-        public void visitSpawn(DPJRenames that)                { visitTree(that); }
+        public void visitSpawn(DPJSpawn that)                { visitTree(that); }
         public void visitFinish(DPJFinish that)              { visitTree(that); }
         public void visitCobegin(DPJCobegin that)            { visitTree(that); }
         public void visitAtomic(DPJAtomic that)	             { visitTree(that); }

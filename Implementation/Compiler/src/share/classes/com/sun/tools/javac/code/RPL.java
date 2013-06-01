@@ -75,6 +75,13 @@ public class RPL implements
 	return false;
     }
     
+    public boolean isUnique() {
+	if (!elts.isEmpty()) {
+	    return elts.head.isUnique();
+	}
+	return false;
+    }
+    
     /** RPL under relation
      *  See Section 1.2.2 of the DPJ Tech Report
      */
