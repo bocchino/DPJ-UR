@@ -82,7 +82,7 @@ public class FJTaskHarness extends TreeScanner {
 
     /* ------------ Visitor methods for various sorts of trees -------------*/
 
-    public void visitSpawn(DPJSpawn that) {}
+    public void visitSpawn(DPJRenames that) {}
     public void visitFinish(DPJFinish that) {}
     public void visitCobegin(DPJCobegin that) {}
     public void visitDPJForLoop(DPJForLoop that) {}

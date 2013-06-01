@@ -129,7 +129,7 @@ import com.sun.tools.javac.tree.JCTree.DPJRegionDecl;
 import com.sun.tools.javac.tree.JCTree.DPJRegionParameter;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathList;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathListElt;
-import com.sun.tools.javac.tree.JCTree.DPJSpawn;
+import com.sun.tools.javac.tree.JCTree.DPJRenames;
 import com.sun.tools.javac.tree.JCTree.DPJUniqueRegionDecl;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
@@ -2219,9 +2219,24 @@ public class Attr extends JCTree.Visitor {
 
         Type owntype = syms.errType;
         if (operator.kind == MTH) {
-            owntype = (JCTree.PREINC <= tree.getTag() && tree.getTag() <= JCTree.POSTDEC)
-                ? tree.arg.type
-                : operator.type.getReturnType();
+            if (tree.getTag() == JCTree.NOT && 
+        	    !types.isAssignable(tree.arg.type, syms.booleanType)) {
+        	// Destructive access
+        	owntype = tree.arg.type;
+     		if (tree.arg instanceof JCFieldAccess ||
+     			tree.arg instanceof JCArrayAccess) {
+     		    tree.isDestructiveAccess = true;
+     		    Symbol sym = tree.arg.getSymbol();
+     		    if (sym != null && ((sym.flags() & FINAL) != 0))
+     			log.error(tree.pos(), "cant.assign.val.to.final.var", sym);
+     		}
+     		else {
+     		    log.error(tree.arg.pos(), "expected.access");
+     		}
+            } else {
+        	owntype = (JCTree.PREINC <= tree.getTag() && tree.getTag() <= JCTree.POSTDEC)
+        		? tree.arg.type : operator.type.getReturnType();
+            }
             int opc = ((OperatorSymbol)operator).opcode;
 
             // If the argument is constant, fold it.
@@ -3850,7 +3865,7 @@ public class Attr extends JCTree.Visitor {
     
     /** Visitor method for spawn.
      */
-    public void visitSpawn(DPJSpawn tree) {
+    public void visitSpawn(DPJRenames tree) {
         attribStat(tree.body, env);
         result = null;
     }

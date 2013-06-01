@@ -31,7 +31,7 @@ import com.sun.tools.javac.tree.JCTree.DPJFinish;
 import com.sun.tools.javac.tree.JCTree.DPJForLoop;
 import com.sun.tools.javac.tree.JCTree.DPJNegationExpression;
 import com.sun.tools.javac.tree.JCTree.DPJNonint;
-import com.sun.tools.javac.tree.JCTree.DPJSpawn;
+import com.sun.tools.javac.tree.JCTree.DPJRenames;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCAssert;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
@@ -475,7 +475,7 @@ public class CheckEffects extends EnvScanner { // DPJ
     }
 
     @Override
-    public void visitSpawn(DPJSpawn tree) {
+    public void visitSpawn(DPJRenames tree) {
 	super.visitSpawn(tree);
 	addAll(tree.body, tree);
     }

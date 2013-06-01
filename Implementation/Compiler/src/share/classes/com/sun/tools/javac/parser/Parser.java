@@ -1870,7 +1870,7 @@ public class Parser {
             case WHILE: case DO: case TRY:
             case SWITCH: case SYNCHRONIZED: case RETURN: case THROW: case BREAK:
             case CONTINUE: case SEMI: case ELSE: case FINALLY: case CATCH: 
-            case SPAWN: case FINISH: case COBEGIN: case COBEGIN_ND:
+            case RENAMES: case FINISH: case COBEGIN: case COBEGIN_ND:
                 stats.append(statement());
                 break;
             case MONKEYS_AT:
@@ -2095,10 +2095,10 @@ public class Parser {
             JCBlock body = block();
             return F.at(pos).Synchronized(lock, body);
         }
-        case SPAWN: {
+        case RENAMES: {
             S.nextToken();
             JCStatement body = statement();
-            return F.at(pos).Spawn(body);
+            return F.at(pos).Renames(body);
         }
         case FINISH: {
             S.nextToken();
@@ -3340,7 +3340,7 @@ public class Parser {
         boolean isPure = false;
         List<JCTree.DPJRegionPathList> readEffects = List.nil();
         List<JCTree.DPJRegionPathList> writeEffects = List.nil();
-        boolean renames = false;
+        boolean renamesEffect = false;
         List<JCTree.DPJCopyEffect> copyEffects = List.nil(); 
         List<JCIdent> variableEffects = List.nil();
         if (S.token() == PURE) {
@@ -3361,7 +3361,7 @@ public class Parser {
             }
             else if (tokenIsIdent("renames")) {
         	S.nextToken();
-        	renames = true;
+        	renamesEffect = true;
             }
             if (tokenIsIdent("effect")) {
         	// TODO: Implement atomic and nonint effect vars
@@ -3370,7 +3370,7 @@ public class Parser {
         }
         JCTree.DPJEffect result = 
             toP(F.at(pos).Effect(isPure, readEffects, writeEffects,
-        	    renames, copyEffects, variableEffects));
+        	    renamesEffect, copyEffects, variableEffects));
         return result;
     }
     
@@ -3789,7 +3789,7 @@ public class Parser {
         case JCTree.SL_ASG: case JCTree.SR_ASG: case JCTree.USR_ASG:
         case JCTree.PLUS_ASG: case JCTree.MINUS_ASG:
         case JCTree.MUL_ASG: case JCTree.DIV_ASG: case JCTree.MOD_ASG:
-        case JCTree.APPLY: case JCTree.NEWCLASS: case JCTree.SPAWN:
+        case JCTree.APPLY: case JCTree.NEWCLASS: case JCTree.RENAMES:
         case JCTree.ERRONEOUS:
             return t;
         default:

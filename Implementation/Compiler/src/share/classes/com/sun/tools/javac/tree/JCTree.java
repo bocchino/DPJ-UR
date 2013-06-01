@@ -82,7 +82,7 @@ import com.sun.source.tree.RPLTree;
 import com.sun.source.tree.RegionParameterTree;
 import com.sun.source.tree.RegionTree;
 import com.sun.source.tree.ReturnTree;
-import com.sun.source.tree.SpawnTree;
+import com.sun.source.tree.RenamesTree;
 import com.sun.source.tree.StatementTree;
 import com.sun.source.tree.SwitchTree;
 import com.sun.source.tree.SynchronizedTree;
@@ -433,11 +433,11 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
     
     /** Spawn statements, of type Spawn
      */
-    public static final int SPAWN = REGIONAPPLY + 1;
+    public static final int RENAMES = REGIONAPPLY + 1;
     
     /** Finish statements, of type Finish
      */
-    public static final int FINISH = SPAWN + 1;
+    public static final int FINISH = RENAMES + 1;
     
     /** Cobegin statements, of type Cobegin
      */
@@ -1925,25 +1925,25 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
     }
 
     /**
-     * A spawn statement
+     * A renames statement
      */
-    public static class DPJSpawn extends JCStatement implements SpawnTree {
+    public static class DPJRenames extends JCStatement implements RenamesTree {
         public JCStatement body;
-        protected DPJSpawn(JCStatement body) {
+        protected DPJRenames(JCStatement body) {
             this.body = body;
         }
         @Override
         public void accept(Visitor v) { v.visitSpawn(this); }
 
-        public Kind getKind() { return Kind.SPAWN; }
+        public Kind getKind() { return Kind.RENAMES; }
         public JCStatement getStatement() { return body; }
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
-            return v.visitSpawn(this, d);
+            return v.visitRenames(this, d);
         }
         @Override
         public int getTag() {
-            return SPAWN;
+            return RENAMES;
         }	
     }
     
@@ -2616,21 +2616,21 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
 	public final List<DPJRegionPathList> readEffects;
 	public final List<DPJRegionPathList> writeEffects;
 	public final List<DPJCopyEffect> copyEffects;
-	public final boolean renames;
+	public final boolean hasRenamesEffect;
 	public List<JCIdent> variableEffects;
 	public Effects effects;
 	
 	protected DPJEffect(boolean isPure, 
 				   List<DPJRegionPathList> readEffects,
 		                   List<DPJRegionPathList> writeEffects,
-		                   boolean renames,
+		                   boolean hasRenamesEffect,
 		                   List<DPJCopyEffect> copyEffects,
 		            	   List<JCIdent> variableEffects) 
 	{
 	    this.isPure = isPure;
 	    this.readEffects = readEffects;
 	    this.writeEffects = writeEffects;
-	    this.renames = renames;
+	    this.hasRenamesEffect = hasRenamesEffect;
 	    this.copyEffects = copyEffects;
 	    this.variableEffects = variableEffects;
 	}
@@ -2993,13 +2993,13 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         DPJEffect Effect(boolean isPure,
 			 List<DPJRegionPathList> readEffects,
 			 List<DPJRegionPathList> writeEffects,
-			 boolean renames,
+			 boolean hasRenamesEffect,
 			 List<DPJCopyEffect> copyEffects,
 			 List<JCIdent> variableEffects);
         DPJCopyEffect CopyEffect(DPJRegionPathList from, DPJRegionPathList to);
         DPJRegionDecl RegionDecl(JCModifiers mods, Name name, boolean isAtomic);
         DPJUniqueRegionDecl UniqueRegionDecl(DPJRegionParameter param, JCStatement copyPhase);
-        DPJSpawn Spawn(JCStatement expr);
+        DPJRenames Renames(JCStatement expr);
         DPJFinish Finish(JCStatement body);
         DPJCobegin Cobegin(JCStatement body, boolean isNonDet);
         DPJAtomic Atomic(JCStatement body);
@@ -3071,7 +3071,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         public void visitModifiers(JCModifiers that)         { visitTree(that); }
         public void visitErroneous(JCErroneous that)         { visitTree(that); }
         public void visitLetExpr(LetExpr that)               { visitTree(that); }
-        public void visitSpawn(DPJSpawn that)                { visitTree(that); }
+        public void visitSpawn(DPJRenames that)                { visitTree(that); }
         public void visitFinish(DPJFinish that)              { visitTree(that); }
         public void visitCobegin(DPJCobegin that)            { visitTree(that); }
         public void visitAtomic(DPJAtomic that)	             { visitTree(that); }

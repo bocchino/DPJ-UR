@@ -594,7 +594,7 @@ public interface Tree {
          * Used for instances of {@link SpawnTree} representing a 
          * spawn statement.
          */
-        SPAWN(SpawnTree.class),
+        RENAMES(RenamesTree.class),
         
         /**
          * Used for instances of {@link FinishTree} representing a

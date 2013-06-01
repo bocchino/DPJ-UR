@@ -74,7 +74,7 @@ import com.sun.source.tree.RegionParamTypeTree;
 import com.sun.source.tree.RegionParameterTree;
 import com.sun.source.tree.RegionTree;
 import com.sun.source.tree.ReturnTree;
-import com.sun.source.tree.SpawnTree;
+import com.sun.source.tree.RenamesTree;
 import com.sun.source.tree.SwitchTree;
 import com.sun.source.tree.SynchronizedTree;
 import com.sun.source.tree.ThrowTree;
@@ -475,7 +475,7 @@ public class TreeScanner<R,P> implements TreeVisitor<R,P> {
 	return null; // DPJ FIXME
     }
     
-    public R visitSpawn(SpawnTree node, P p) {
+    public R visitRenames(RenamesTree node, P p) {
 	return null; // DPJ FIXME
     }
     

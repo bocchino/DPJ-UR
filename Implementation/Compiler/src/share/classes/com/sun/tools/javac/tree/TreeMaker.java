@@ -365,8 +365,8 @@ public class TreeMaker implements JCTree.Factory {
         return tree;
     }
 
-    public DPJSpawn Spawn(JCStatement body) {
-	DPJSpawn tree = new DPJSpawn(body);
+    public DPJRenames Renames(JCStatement body) {
+	DPJRenames tree = new DPJRenames(body);
 	tree.pos = pos;
 	return tree;
     }
@@ -538,11 +538,11 @@ public class TreeMaker implements JCTree.Factory {
     public DPJEffect Effect(boolean isPure, 
 	    			   List<DPJRegionPathList> readEffects,
 	    			   List<DPJRegionPathList> writeEffects,
-	    			   boolean renames,
+	    			   boolean hasRenamesEffect,
 	    			   List<DPJCopyEffect> copyEffects,
 	    			   List<JCIdent> variableEffects) {
 	DPJEffect tree = new DPJEffect(isPure, readEffects, writeEffects,
-				       		     renames, copyEffects, variableEffects);
+				       hasRenamesEffect, copyEffects, variableEffects);
 	tree.pos = pos;
 	return tree;
     }

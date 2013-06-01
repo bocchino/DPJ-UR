@@ -344,7 +344,7 @@ public class TreeScanner extends Visitor {
 	scan(tree.body);
     }
     
-    public void visitSpawn(DPJSpawn tree) {
+    public void visitSpawn(DPJRenames tree) {
 	scan(tree.body);
     }
 

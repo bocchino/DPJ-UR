@@ -76,7 +76,7 @@ import com.sun.source.tree.RPLTree;
 import com.sun.source.tree.RegionParameterTree;
 import com.sun.source.tree.RegionTree;
 import com.sun.source.tree.ReturnTree;
-import com.sun.source.tree.SpawnTree;
+import com.sun.source.tree.RenamesTree;
 import com.sun.source.tree.SwitchTree;
 import com.sun.source.tree.SynchronizedTree;
 import com.sun.source.tree.ThrowTree;
@@ -102,7 +102,7 @@ import com.sun.tools.javac.tree.JCTree.DPJRegionDecl;
 import com.sun.tools.javac.tree.JCTree.DPJRegionParameter;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathList;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathListElt;
-import com.sun.tools.javac.tree.JCTree.DPJSpawn;
+import com.sun.tools.javac.tree.JCTree.DPJRenames;
 import com.sun.tools.javac.tree.JCTree.DPJUniqueRegionDecl;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
@@ -610,7 +610,7 @@ public class TreeCopier<P> implements TreeVisitor<JCTree,P> {
 	List<DPJCopyEffect> copyEffects = copy(t.copyEffects, p);
 	List<JCIdent> variableEffects = copy(t.variableEffects, p);
 	return M.at(t.pos).Effect(t.isPure, readEffects, writeEffects,
-		t.renames, copyEffects, variableEffects);
+		t.hasRenamesEffect, copyEffects, variableEffects);
     }
     
     public JCTree visitRegionParameter(RegionParameterTree node, P p) {
@@ -642,10 +642,10 @@ public class TreeCopier<P> implements TreeVisitor<JCTree,P> {
         	effectParams, effectConstraints.toList());
     }
     
-    public JCTree visitSpawn(SpawnTree node, P p) {
-	DPJSpawn t = (DPJSpawn) node;
+    public JCTree visitRenames(RenamesTree node, P p) {
+	DPJRenames t = (DPJRenames) node;
 	JCStatement body = copy(t.body, p);
-	return M.at(t.pos).Spawn(body);
+	return M.at(t.pos).Renames(body);
     }
     
     public JCTree visitFinish(FinishTree node, P p) {

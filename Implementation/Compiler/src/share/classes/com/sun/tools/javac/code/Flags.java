@@ -113,10 +113,10 @@ public class Flags {
     
     /** Flag that denotes a shared class
      */
-    public static final int SHARED	 = 1<<17;
+    public static final int SHARED	 = 1<<19;
     
     public static final int StandardFlags = 0x0fff;
-    public static final int DPJStandardFlags = StandardFlags | ISCOMMUTATIVE | ARRAYCLASS | SHARED;
+    public static final int DPJStandardFlags = StandardFlags | ISCOMMUTATIVE | ARRAYCLASS;
 
     // Because the following access flags are overloaded with other
     // bit positions, we translate them when reading and writing class

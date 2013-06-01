@@ -61,7 +61,7 @@ import com.sun.tools.javac.tree.JCTree.DPJRegionDecl;
 import com.sun.tools.javac.tree.JCTree.DPJRegionParameter;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathList;
 import com.sun.tools.javac.tree.JCTree.DPJRegionPathListElt;
-import com.sun.tools.javac.tree.JCTree.DPJSpawn;
+import com.sun.tools.javac.tree.JCTree.DPJRenames;
 import com.sun.tools.javac.tree.JCTree.DPJUniqueRegionDecl;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
@@ -1543,7 +1543,7 @@ public class Pretty extends JCTree.Visitor {
         }
     }
     
-    public void visitSpawn(DPJSpawn tree) {
+    public void visitSpawn(DPJRenames tree) {
 	try {
 	    if (codeGenMode == NONE) {
 		print("spawn ");
