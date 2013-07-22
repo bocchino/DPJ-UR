@@ -7,12 +7,15 @@ import com.sun.tools.javac.util.Pair;
  */
 public class Constraints {
     public Constraints(List<Pair<RPL,RPL>> disjointRPLs, 
-	    List<Pair<Effects,Effects>> noninterferingEffects) {
+	    List<Pair<Effects,Effects>> noninterferingEffects,
+	    List<Pair<RPL,RPL>> unequalPrefixes) {
 	this.disjointRPLs = disjointRPLs;
 	this.noninterferingEffects = noninterferingEffects;
+	this.unequalPrefixes = unequalPrefixes;
     }
     public Constraints() {}
     public List<Pair<RPL,RPL>> disjointRPLs = List.nil();
     public List<Pair<Effects,Effects>> noninterferingEffects = List.nil();
+    public List<Pair<RPL,RPL>> unequalPrefixes = List.nil();
     // We can add others here as necessary, like inclusion or subeffects
 }

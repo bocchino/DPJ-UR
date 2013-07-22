@@ -82,6 +82,10 @@ public class RPL implements
 	return false;
     }
     
+    public RPLElement uniquePrefix() {
+	return this.isUnique() ? elts.head : null;
+    }
+    
     /** RPL under relation
      *  See Section 1.2.2 of the DPJ Tech Report
      */

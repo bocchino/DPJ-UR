@@ -1026,8 +1026,15 @@ public class Attr extends JCTree.Visitor {
 	localEnv.info.constraints.noninterferingEffects =
 	    localEnv.info.constraints.noninterferingEffects.appendList(effectConstraints);
 	
+	// Enter unique prefix constraints
+	ListBuffer<Pair<RPL,RPL>> unequalPrefixBuf = ListBuffer.lb();
+	// TODO
+	List<Pair<RPL,RPL>> unequalPrefixes = unequalPrefixBuf.toList();
+	localEnv.info.constraints.unequalPrefixes =
+		localEnv.info.constraints.unequalPrefixes.appendList(unequalPrefixes);
+	
 	// Return constraints
-	return new Constraints(rplConstraints, effectConstraints);
+	return new Constraints(rplConstraints, effectConstraints, unequalPrefixes);
     }
     
     public void visitMethodDef(JCMethodDecl tree) {

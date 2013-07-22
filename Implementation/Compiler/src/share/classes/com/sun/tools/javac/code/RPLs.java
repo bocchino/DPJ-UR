@@ -117,11 +117,14 @@ public class RPLs {
 	return false;
     }
     
-    public boolean areDisjointFromRight(RPL rpl1, RPL rpl2,
+    public boolean areDisjointFromRight(RPL R1, RPL R2,
 	    List<Pair<RPL,RPL>> constraints) {
-	if (rpl1.isEmpty() || rpl2.isEmpty()) return false;
-	List<RPLElement> elts1 = rpl1.elts.reverse();
-	List<RPLElement> elts2 = rpl2.elts.reverse();
+	if (R1.isUnique() && R2.isUnique() && !equalUniquePrefix(R1,R2)) {
+	    return false;
+	}
+	if (R1.isEmpty() || R2.isEmpty()) return false;
+	List<RPLElement> elts1 = R1.elts.reverse();
+	List<RPLElement> elts2 = R2.elts.reverse();
 	while (!elts1.isEmpty() && !elts2.isEmpty()) {
 	    if (elts1.head == RPLElement.STAR || elts2.head == RPLElement.STAR)
 		return false;
@@ -132,7 +135,38 @@ public class RPLs {
 	}
 	return false;    
     }
+    
+    /** 
+     * Do R1 and R2 share the same unique prefix after runtime parameter 
+     * substitution ? 
+     */
+    public boolean equalUniquePrefix(RPL R1, RPL R2) {
+	RPLElement prefix1 = R1.uniquePrefix();
+	RPLElement prefix2 = R2.uniquePrefix();
+	return (prefix1 != null) && prefix1.equals(prefix2);
+    }
 
+    /**
+     * Do R1 and R2 definitely not share the same unique prefix after runtime
+     * substitution?  True if either or both of R1 and R2 are not unique (i.e.,
+     * neither has a unique prefix.  Also true if both R1 and R2 are unique
+     * (so they each have a unique prefix) and the prefixes are different. 
+     */
+    public boolean unequalUniquePrefix(RPL R1, RPL R2, 
+	    List<Pair<RPL,RPL>> constraints) {
+	if (!R1.isUnique() || !R2.isUnique()) {
+	    return false;
+	}
+	for (Pair<RPL,RPL> constraint : constraints) {
+	    RPL C1 = new RPL(constraint.fst.elts.append(RPLElement.STAR));
+	    RPL C2 = new RPL(constraint.snd.elts.append(RPLElement.STAR));
+	    if (R1.isIncludedIn(C1) && R2.isIncludedIn(C2)) {
+		return true;
+	    }
+	}
+	return false;
+    }
+    
     /**
      * Are the region constraints satisfied after subbing actuals for formals?
      * @param constraints	Constraints that need to be satisfied
