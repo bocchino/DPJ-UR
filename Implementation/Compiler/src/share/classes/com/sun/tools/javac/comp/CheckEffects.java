@@ -151,7 +151,7 @@ public class CheckEffects extends EnvScanner { // DPJ
 	for (JCStatement stat2 : stats) {
 	    Effects effects1 = stat.effects.inEnvironment(rs, childEnvs.head, false);
 	    Effects effects2 = stat2.effects.inEnvironment(rs, childEnvs.head, false);
-	    if (!Effects.noninterferingEffects(effects1, effects2,
+	    if (!Effects.areNoninterfering(effects1, effects2,
 			childEnvs.head.info.constraints, atomicOK))
 		return true;
 	}
@@ -399,7 +399,7 @@ public class CheckEffects extends EnvScanner { // DPJ
 	Effects negatedEffects = 
 	    effects.substIndices(List.of(tree.var.sym), 
 		    List.<JCExpression>of(new DPJNegationExpression(tree.var.sym)));
-	if (!Effects.noninterferingEffects(effects, negatedEffects,
+	if (!Effects.areNoninterfering(effects, negatedEffects,
 		env.info.constraints, tree.isNondet)) {
 	    log.warning(tree.pos(), "interference.foreach");
 	}

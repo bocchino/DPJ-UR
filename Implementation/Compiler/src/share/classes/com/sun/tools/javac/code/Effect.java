@@ -30,7 +30,12 @@ public abstract class Effect implements
     /** Is this a nonint effect? */
     protected boolean isNonint;
     public boolean isNonint() { return isNonint; }
-    
+   
+    /** Is this a valid effect? */
+    public boolean isValid(Constraints constraints) { 
+	    return true; 
+    }
+
     public RPLs rpls;
     
     protected Effect(RPLs rpls, boolean isAtomic, boolean isNonint) {
@@ -133,8 +138,16 @@ public abstract class Effect implements
     /**
      * Noninterfering effects -- See section 3.3 of Tech Report
      */
-    public abstract boolean isNoninterferingWith(Effect e, 
-	    Constraints constraints, boolean atomicOK);
+    public boolean isNoninterferingWith(Effect e, 
+	    Constraints constraints, boolean atomicOK) {
+	    if (atomicOK && isNondetAtomic(this, e)) {
+		return true;
+	    }
+	    if (e instanceof CopyEffect) {
+		    return true;
+	    }
+	    return false;
+    }
     
     public boolean isNoninterferingWith(Effects effects,
 	    Constraints constraints, boolean atomicOK) { 
@@ -145,7 +158,21 @@ public abstract class Effect implements
 	return this.isNoninterferingWith(e, constraints, atomicOK) && 
 		this.isNoninterferingWith(effects.without(e), constraints, atomicOK);
     }
-    
+   
+    /**
+     * Consistent effects --- s. 3.5 of DPJ-UR tech report
+     */
+    public boolean isConsistentWith(Effect e, Constraints constraints) {
+	    return true;
+    }
+
+    public boolean isConsistentWith(Effects effects, Constraints constraints) {
+	if (effects.isEmpty()) return true;
+	Effect e = effects.first();
+	return this.isConsistentWith(e, constraints) &&
+		this.isConsistentWith(effects.without(e), constraints);
+    }
+
     /**
      * Return this effect as it appears in an atomic statement
      */
@@ -195,8 +222,8 @@ public abstract class Effect implements
 	@Override
 	public boolean isNoninterferingWith(Effect e, Constraints constraints,
 		boolean atomicOK) {
-	    if (atomicOK && isNondetAtomic(this, e)) {
-		return true;
+	    if (super.isNoninterferingWith(e, constraints, atomicOK)) {
+		    return true;
 	    }
 	    if (e instanceof ReadEffect) {
 		// NI-READ
@@ -336,8 +363,8 @@ public abstract class Effect implements
 	@Override
 	public boolean isNoninterferingWith(Effect e, 
 		Constraints constraints, boolean atomicOK) {
-	    if (atomicOK && isNondetAtomic(this, e)) {
-		return true;
+	    if (super.isNoninterferingWith(e, constraints, atomicOK)) {
+		    return true;
 	    }
 	    if (e instanceof ReadEffect) {
 		// NI-READ
@@ -494,7 +521,7 @@ public abstract class Effect implements
 	    if (e.isNoninterferingWith(withEffects, constraints, atomicOK)) return true;
 	    if (e instanceof InvocationEffect) {
 		InvocationEffect ie = (InvocationEffect) e;
-		if (Effects.noninterferingEffects(withEffects, ie.withEffects,
+		if (Effects.areNoninterfering(withEffects, ie.withEffects,
 			constraints, atomicOK)) {
 		    return true;
 		}
@@ -618,7 +645,7 @@ public abstract class Effect implements
 	@Override
 	public boolean isNoninterferingWith(Effect e,
 		Constraints constraints, boolean atomicOK) {
-	    if (atomicOK && isNondetAtomic(this, e)) {
+	    if (super.isNoninterferingWith(e, constraints, atomicOK)) {
 		return true;
 	    }
 	    for (Pair<Effects,Effects> constraint : constraints.noninterferingEffects) {
@@ -675,6 +702,212 @@ public abstract class Effect implements
 	}
     }
     
+    /** A class for rename effects
+     */
+    public static class RenameEffect extends Effect {
+	public RenameEffect(RPLs rpls) {
+	    super(rpls, false, false);
+	}
+
+	@Override	
+	public boolean isSubeffectOf(Effect e) {
+	    if (e instanceof RenameEffect) {
+		return true;
+	    }
+	    return false;
+	}
+
+	@Override
+	public boolean isConsistentWith(Effect e, Constraints constraints) {
+		return !(e instanceof CopyEffect);
+	}
+	
+	@Override
+	public String toString() {
+	    return "renames";
+	}
+	
+	@Override
+	public int hashCode() {
+	    return 17;
+	}
+	
+	public boolean equals(Object o) {
+	    return o instanceof RenameEffect;
+	}
+
+    }
+   
+    public static class CopyEffect extends Effect {
+	public RPL source;
+	public RPL target;
+	public CopyEffect(RPLs rpls, RPL source, RPL target, 
+			boolean isAtomic, boolean isNonint) {
+	    super(rpls, isAtomic, isNonint);
+	    this.source = source;
+	    this.target = target;
+	    if (!source.isAtomic() || !target.isAtomic()) 
+		    this.isAtomic = false;
+	}
+	
+	@Override
+	public boolean isSubeffectOf(Effect e) {
+	    if (!isSubeffectAtomic(this, e)) return false;
+	    if (!isSubeffectNonint(this, e)) return false;
+	    if (!(e instanceof CopyEffect)) return false;
+	    CopyEffect ce = (CopyEffect) e;
+	    if (!source.isUnique()) return false;
+	    if (!source.uniquePrefix().equals(target.uniquePrefix()))
+		    return false;
+	    return this.source.isIncludedIn(ce.target);
+	}
+
+	@Override
+	public boolean isValid(Constraints constraints) {
+	    // EFFECT-COPIES
+	    if (!source.isUnique() || !target.isUnique())
+		    return false;
+	    return rpls.unequalUniquePrefix(source, target,
+			    constraints.unequalPrefixes);
+	}
+
+	@Override
+	public boolean isNoninterferingWith(Effect e, Constraints constraints,
+		boolean atomicOK) {
+	    return true;
+	}
+	
+	@Override
+	public boolean isConsistentWith(Effect e, Constraints constraints) {
+		if (e instanceof RenameEffect) return false;
+		if (!(e instanceof CopyEffect)) return true;
+		CopyEffect ce = (CopyEffect) e;
+		// PAIR-EQUAL-PREFIX
+		if (rpls.areDisjoint(this.source, ce.source, 
+					constraints.disjointRPLs) &&
+			rpls.equalUniquePrefix(this.source, ce.source) &&
+			rpls.equalUniquePrefix(ce.source, this.target)) {
+			return true;
+		}	
+		// PAIR-UNEQUAL-PREFIX
+		if (rpls.unequalUniquePrefix(this.source, ce.source,
+				constraints.unequalPrefixes) &&
+			rpls.unequalUniquePrefix(this.source, ce.target,
+				constraints.unequalPrefixes) &&
+			rpls.unequalUniquePrefix(this.target, ce.target,
+				constraints.unequalPrefixes) &&
+			rpls.unequalUniquePrefix(ce.target, this.source,
+				constraints.unequalPrefixes)) {
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public Effect substRPLParams(Iterable<RPL> from, Iterable<RPL> to) {
+	    return new CopyEffect(rpls, source.substRPLParams(from, to),
+		    target.substRPLParams(from, to), this.isAtomic(), 
+		    this.isNonint());
+	}
+	
+	@Override
+	public Effect substTRParams(Iterable<Type> from, Iterable<Type> to) {
+	    return new CopyEffect(rpls, source.substTRParams(from, to), 
+		    target.substTRParams(from, to), this.isAtomic(), 
+		    this.isNonint());
+	}	    
+	
+	@Override
+	public Effect substVars(Iterable<VarSymbol> from, Iterable<VarSymbol> to) {
+	    return new CopyEffect(rpls, 
+			Substitute.iterable(RPLs.substVars, source, from, to), 
+		    	Substitute.iterable(RPLs.substVars, target, from, to),
+		       	this.isAtomic(), this.isNonint());
+	}
+	
+	@Override
+	public Effect substExpsForVars(Iterable<VarSymbol> from, 
+		Iterable<JCExpression> to) {
+	    return new CopyEffect(rpls, source.substExpsForVars(from, to), 
+		    target.substExpsForVars(from, to), this.isAtomic(), 
+		    this.isNonint());
+	}
+	
+	@Override
+	public Effect substRPLForVar(VarSymbol from, RPL to) {
+	    return new CopyEffect(rpls, this.source.substRPLForVar(from, to), 
+		    this.target.substRPLForVar(from, to),
+		    this.isAtomic(), this.isNonint());
+	}
+		
+	@Override
+	public Effect substIndices(Iterable<VarSymbol> from,
+		Iterable<JCExpression> to) {
+	    return new CopyEffect(rpls, source.substIndices(from, to), 
+		    target.substIndices(from, to), this.isAtomic(), 
+		    this.isNonint());
+	}
+	
+	@Override
+	public Effects asMemberOf(Type t, Types types) {
+	    RPL newSource = source.asMemberOf(t, types);
+	    RPL newTarget = target.asMemberOf(t, types);
+	    if (newSource.equals(source) && newTarget.equals(target))
+		    return new Effects(this);
+	    return new Effects(new CopyEffect(rpls, newSource, newTarget,
+				this.isAtomic(), this.isNonint()));
+	}
+	
+	@Override
+	public Effect inEnvironment(Resolve rs, Env<AttrContext> env, 
+		boolean pruneLocalEffects) {
+	    RPL newSource = source.inEnvironment(rs, env, pruneLocalEffects);
+	    RPL newTarget = target.inEnvironment(rs, env, pruneLocalEffects);
+	    if (newSource == null && newTarget == null) return null;
+	    if (newSource.equals(source) && newTarget.equals(target))
+		    return this;
+	    return new CopyEffect(rpls, source, target, this.isAtomic(),
+			    this.isNonint());
+	}
+
+	@Override
+	public Effect inAtomic() {
+	    if (this.isAtomic() || this.isNonint()) return this;
+	    return new CopyEffect(this.rpls, this.source,
+			this.target, true, false);
+	}
+	
+	@Override
+	public Effect inNonint() {
+	    if (this.isNonint()) return this;
+	    return new CopyEffect(this.rpls, this.source,
+			this.target, false, true);
+	}
+	
+	public String toString() {
+	    StringBuffer sb = new StringBuffer();
+	    sb.append("copies ");
+	    sb.append(source);
+	    sb.append(" to ");
+	    sb.append(target);
+	    return sb.toString();
+	}
+	
+	@Override
+	public int hashCode() {
+	    return 19 * (this.source.hashCode() + this.target.hashCode());
+	}
+	
+	public boolean equals(Object o) {
+	    if (!(o instanceof CopyEffect))
+		return false;
+	    CopyEffect ce = (CopyEffect) o;
+	    return this.source.equals(ce.source) &&
+		    this.target.equals(ce.target);
+	}
+
+    }
+
     /** A class for captured effects
      */
     public static class CapturedEffect extends Effect {

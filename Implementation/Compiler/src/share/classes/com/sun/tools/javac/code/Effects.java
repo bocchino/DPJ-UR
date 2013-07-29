@@ -350,19 +350,31 @@ public class Effects implements
     /**
      * Check whether two effect sets are noninterfering
      */
-    public static boolean noninterferingEffects(Effects effects1, Effects effects2, 
+    public static boolean areNoninterfering(Effects effects1, Effects effects2, 
 	    Constraints constraints, boolean atomicOK) {
         if (effects1.isEmpty()) return true;
         Effect e = effects1.first();
         boolean result = e.isNoninterferingWith(effects2, constraints, atomicOK);
         if (result) {
            effects1 = effects1.without(e);
-           result = noninterferingEffects(effects1, effects2,
+           result = areNoninterfering(effects1, effects2,
         	   constraints, atomicOK);
         }
         return result;
     }
-    
+   
+    /**
+     * Check whether a set of effects is valid
+     */
+    public boolean isValid(Constraints constraints) {
+	if (this.isEmpty()) return true;
+	Effect e = this.first();
+	if (!e.isValid(constraints)) return false;
+	Effects rest = this.without(e);
+	if (!e.isConsistentWith(rest, constraints)) return false;
+	return rest.isValid(constraints);
+    }	    
+
     /**
      * Check whether noninterference constraints are satisfied
      */
@@ -372,7 +384,7 @@ public class Effects implements
 	for (Pair<Effects,Effects> constraint : constraints) {
 	    Effects first = constraint.fst.substForAllParams(t);
 	    Effects second = constraint.snd.substForAllParams(t);
-	    if (!noninterferingEffects(first, second, envConstraints, false)) {
+	    if (!areNoninterfering(first, second, envConstraints, false)) {
 		return false;
 	    }
 	}
@@ -393,7 +405,7 @@ public class Effects implements
 	    Effects second = constraint.snd.translateMethodEffects(tree, types, attr, env);
 	    second = second.substRPLParams(rplFormals, rplActuals);
 	    second = second.substEffectParams(effectFormals, effectActuals);
-	    if (!noninterferingEffects(first, second, envConstraints, false)) {
+	    if (!areNoninterfering(first, second, envConstraints, false)) {
 		System.out.println(first + " interferes with " +second);
 		return false;
 	    }
